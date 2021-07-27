@@ -4,7 +4,7 @@ const express = require('express');
 const socketio = require('socket.io')
 const Filter = require('bad-words');
 const app = express()
-const {generateMessage} = require('./utils/messages')
+const {generateMessage, generateLocationMessage} = require('./utils/messages')
 const server = http.createServer(app)
 const io = socketio(server)
 
@@ -31,7 +31,7 @@ io.on('connection', (socket)=>{
         callback('Delivered');
     })
     socket.on('sendLocation', (message, callback)=>{
-        socket.broadcast.emit('locationMessage', generateMessage(message));
+        io.emit('locationMessage', generateLocationMessage(message));
         callback();
     })
     socket.on('disconnect', ()=>{
