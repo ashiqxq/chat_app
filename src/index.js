@@ -31,26 +31,28 @@ io.on('connection', (socket)=>{
             return callback(error)
         }
         socket.join(user.room)
-        socket.emit('message', generateMessage(welcome_message));
-        socket.broadcast.to(user.room).emit('message', generateMessage(user.username+new_user_message));
+        socket.emit('message', generateMessage('Admin', welcome_message));
+        socket.broadcast.to(user.room).emit('message', generateMessage('Admin', user.username+new_user_message));
         callback()
     })
     socket.on('sendMessage', (message, callback)=>{
+        const user = getUser(socket.id);
         const filter = new Filter();
         if (filter.isProfane(message)){
             return callback('Profanity detected')
         }
-        io.to('thunder').emit('message', generateMessage(message));
+        io.to(user.room).emit('message', generateMessage(user.username, message));
         callback('Delivered');
     })
     socket.on('sendLocation', (message, callback)=>{
-        io.emit('locationMessage', generateLocationMessage(message));
+        const user = getUser(socket.id)
+        io.to(user.room).emit('locationMessage', generateLocationMessage(user.username, message));
         callback();
     })
     socket.on('disconnect', ()=>{
         const user = removeUser(socket.id)
         if (user){
-            io.to(user.room).emit('message', generateMessage(user.username+user_left_message));
+            io.to(user.room).emit('message', generateMessage('Admin', user.username+user_left_message));
         }
         
     })
