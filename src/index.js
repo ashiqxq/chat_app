@@ -30,7 +30,7 @@ io.on('connection', (socket)=>{
         callback('Delivered');
     })
     socket.on('sendLocation', (message, callback)=>{
-        socket.broadcast.emit('message', message);
+        socket.broadcast.emit('locationMessage', message);
         callback();
     })
     socket.on('disconnect', ()=>{
