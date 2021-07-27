@@ -33,6 +33,10 @@ io.on('connection', (socket)=>{
         socket.join(user.room)
         socket.emit('message', generateMessage('Admin', welcome_message));
         socket.broadcast.to(user.room).emit('message', generateMessage('Admin', user.username+new_user_message));
+        io.to(user.room).emit('roomData', {
+            room: user.room,
+            users: getUsersInRoom(user.room)
+        })
         callback()
     })
     socket.on('sendMessage', (message, callback)=>{
@@ -53,6 +57,10 @@ io.on('connection', (socket)=>{
         const user = removeUser(socket.id)
         if (user){
             io.to(user.room).emit('message', generateMessage('Admin', user.username+user_left_message));
+            io.to(user.room).emit('roomData', {
+                room: user.room,
+                users: getUsersInRoom(user.room)
+            })
         }
         
     })
