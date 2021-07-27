@@ -10,16 +10,14 @@ const port = process.env.PORT || 3000
 const publicDirectoryPath = path.join(__dirname, '../public')
 
 app.use(express.static(publicDirectoryPath))
-let count = 0;
+
+
+let message = 'welcome1'
 io.on('connection', (socket)=>{
     console.log("New websocket connection work")
-     socket.emit('countUpdated', count)
-     socket.on('increment', ()=>{
-         count++
-         //socket.emit('countUpdated', count) sends to only one client
-         // to send to all clients io.emit
-         io.emit('countUpdated', count)
-     })
+    socket.on('sendMessage', (message)=>{
+        io.emit('message', message);
+    })
 })
 server.listen(port, ()=>{
     console.log(`Server is up on port ${port}!`);
