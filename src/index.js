@@ -4,6 +4,7 @@ const express = require('express');
 const socketio = require('socket.io')
 const Filter = require('bad-words');
 const app = express()
+const {addUser, removeUser, getUser, getUsersInRoom} = require('./utils/users')
 const {generateMessage, generateLocationMessage} = require('./utils/messages')
 const server = http.createServer(app)
 const io = socketio(server)
@@ -16,14 +17,23 @@ app.use(express.static(publicDirectoryPath))
 
 let welcome_message = 'welcome1'
 let new_user_message = ' has joined'
-let user_left_message = 'An user has left the chat'
+let user_left_message = ' has left the chat'
 io.on('connection', (socket)=>{
     console.log("New websocket connection work");
 
-    socket.on('join', ({username, room})=>{
-        socket.join(room)
+    socket.on('join', ({username, room}, callback)=>{
+        const {error, user} = addUser({
+            id: socket.id,
+            username,
+            room
+        })
+        if (error){
+            return callback(error)
+        }
+        socket.join(user.room)
         socket.emit('message', generateMessage(welcome_message));
-        socket.broadcast.to(room).emit('message', generateMessage(username+new_user_message));
+        socket.broadcast.to(user.room).emit('message', generateMessage(user.username+new_user_message));
+        callback()
     })
     socket.on('sendMessage', (message, callback)=>{
         const filter = new Filter();
@@ -38,7 +48,11 @@ io.on('connection', (socket)=>{
         callback();
     })
     socket.on('disconnect', ()=>{
-        io.emit('message', generateMessage(user_left_message));
+        const user = removeUser(socket.id)
+        if (user){
+            io.to(user.room).emit('message', generateMessage(user.username+user_left_message));
+        }
+        
     })
 })
 
